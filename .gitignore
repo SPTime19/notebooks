@@ -124,6 +124,9 @@ venv.bak/
 # mkdocs documentation
 /site
 
+*.jl
+*.jsonline
+
 # mypy
 .mypy_cache/
 .dmypy.json
