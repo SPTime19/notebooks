@@ -1,0 +1,6 @@
+pandas
+setuptools
+pymc3
+numpy
+theano
+seaborn
