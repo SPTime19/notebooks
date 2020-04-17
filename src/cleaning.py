@@ -1,6 +1,7 @@
 from datetime import datetime
 import numpy as np
 import pandas as pd
+from src.maps import tag_map
 
 
 def extract_days_to_resolution(review: dict):
@@ -63,6 +64,34 @@ def format_RA_to_df(review):
     seals = extract_seals(review)
     for seal_name, seal_value in seals.items():
         r_cp[seal_name] = seal_value
+
+    # Add macro-tags
+    macro_tags = tag_map.keys()
+    for t in macro_tags:
+        if isinstance(tag_map[t], dict):
+            for sub_t in tag_map[t].keys():
+                r_cp[f"{t}_{sub_t}"] = np.nan
+        else:
+            r_cp[t] = np.nan
+
+    # Count macro tags for complaint
+    if "tags" in review:
+        for tag in review["tags"]:
+            for macro, vals in tag_map.items():
+                if tag_map[macro] is dict:
+                    for sub_t in tag_map[macro].keys():
+                        tag_name = f"{macro}_{sub_t}"
+                        if tag in tag_map[macro][sub_t]:
+                            if isinstance(r_cp[tag_name], type(np.nan)):
+                                r_cp[tag_name] = 1
+                            else:
+                                r_cp[tag_name] += 1
+                else:
+                    if tag in vals:
+                        if isinstance(r_cp[macro], type(np.nan)):
+                            r_cp[macro] = 1
+                        else:
+                            r_cp[macro] += 1
 
     return r_cp
 
