@@ -77,16 +77,21 @@ def format_RA_to_df(review):
     # Count macro tags for complaint
     if "tags" in review:
         for tag in review["tags"]:
+            
             for macro, vals in tag_map.items():
-                if tag_map[macro] is dict:
+                if isinstance(tag_map[macro], dict):
+                    
                     for sub_t in tag_map[macro].keys():
+                        
                         tag_name = f"{macro}_{sub_t}"
+                        
                         if tag in tag_map[macro][sub_t]:
                             if isinstance(r_cp[tag_name], type(np.nan)):
                                 r_cp[tag_name] = 1
                             else:
                                 r_cp[tag_name] += 1
                 else:
+                    # Others type -> list
                     if tag in vals:
                         if isinstance(r_cp[macro], type(np.nan)):
                             r_cp[macro] = 1
