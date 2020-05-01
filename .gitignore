@@ -145,8 +145,10 @@ cython_debug/
 media
 static
 
-
 # Added luis 20/03/20
 venv/*
 *output*
 .idea/*
+
+# Added by makoto 01/05/20
+dataset/
