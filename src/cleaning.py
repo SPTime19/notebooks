@@ -1,7 +1,8 @@
-from datetime import datetime
 import numpy as np
 import pandas as pd
 from src.maps import tag_map
+from src.maps import relative_date
+from datetime import datetime, timedelta
 
 
 def extract_days_to_resolution(review: dict):
@@ -86,6 +87,82 @@ def format_RA_to_df(review):
                         tag_name = f"{macro}_{sub_t}"
                         
                         if tag in tag_map[macro][sub_t]:
+                            if isinstance(r_cp[tag_name], type(np.nan)):
+                                r_cp[tag_name] = 1
+                            else:
+                                r_cp[tag_name] += 1
+                else:
+                    # Others type -> list
+                    if tag in vals:
+                        if isinstance(r_cp[macro], type(np.nan)):
+                            r_cp[macro] = 1
+                        else:
+                            r_cp[macro] += 1
+
+    return r_cp
+
+
+def comment_day(review):
+    init_dt = datetime.strptime(review["retrieval_date"], '%Y-%m-%dT%H:%M:%SZ')
+    relative = relative_date[review['relative_date']]
+    return init_dt - timedelta(days=relative)
+
+
+def format_GB_to_df(review):
+    cols_for_df = ['caption', 'id_review', 'n_photo_user', 'n_review_user',
+                   'rating', 'relative_date', 'retrieval_date', 'store', 'url_user', 'username']
+    r_cp = {col: review[col] for col in cols_for_df if col in review}
+    r_cp['latitude'] = review['geo_location']['lat'] if "geo_location" in review and "lat" in review[
+        'geo_location'] else np.nan
+    r_cp['longitude'] = review['geo_location']['long'] if "geo_location" in review and "long" in review[
+        'geo_location'] else np.nan
+    r_cp["len_comment"] = len(review['caption'])
+    r_cp["relative"] = relative_date[review['relative_date']]
+    r_cp["date_comment"] = comment_day(review)
+
+    # Add macro-tags
+    macro_tags = tag_map.keys()
+    for t in macro_tags:
+        if isinstance(tag_map[t], dict):
+            for sub_t in tag_map[t].keys():
+                r_cp[f"{t}_{sub_t}"] = np.nan
+        else:
+            r_cp[t] = np.nan
+
+    # Count macro tags for complaint
+    if "tags" in review:
+        for tag in review["tags"]:
+            for macro, vals in tag_map.items():
+                if isinstance(tag_map[macro], dict):
+                    for sub_t in tag_map[macro].keys():
+                        tag_name = f"{macro}_{sub_t}"
+                        if tag in tag_name:
+                            if isinstance(r_cp[tag_name], type(np.nan)):
+                                r_cp[tag_name] = 1
+                            else:
+                                r_cp[tag_name] += 1
+                else:
+                    # Others type -> list
+                    if tag in vals:
+                        if isinstance(r_cp[macro], type(np.nan)):
+                            r_cp[macro] = 1
+                        else:
+                            r_cp[macro] += 1
+
+    # Add MACRO-macro-tags
+    macro_tags_2 = tag_map.keys()
+    for t in macro_tags_2:
+        r_cp[t] = np.nan
+
+    # Count MACRO macro tags for complaint
+    if "tags" in review:
+        for tag in review["tags"]:
+            for macro, vals in tag_map.items():
+                if isinstance(tag_map[macro], dict):
+                    for sub_t in tag_map[macro].keys():
+                        tag_name = f"{macro}"
+                        sub_tag_name = f"{macro}_{sub_t}"
+                        if tag in sub_tag_name:
                             if isinstance(r_cp[tag_name], type(np.nan)):
                                 r_cp[tag_name] = 1
                             else:
