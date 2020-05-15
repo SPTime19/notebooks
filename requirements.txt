@@ -4,3 +4,4 @@ pymc3
 numpy
 theano
 seaborn
+gensim
